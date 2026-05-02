@@ -2,27 +2,41 @@ import AppKit
 
 @MainActor
 final class MenuBarStatusView: NSView {
-    static let compactLength: CGFloat = 28
+    private static let iconSide: CGFloat = 14
+    private static let horizontalPadding: CGFloat = 3
 
     var onActivate: ((NSEvent) -> Void)?
 
     private let imageView = NSImageView()
 
-    override init(frame frameRect: NSRect) {
-        super.init(frame: NSRect(x: 0, y: 0, width: Self.compactLength, height: NSStatusBar.system.thickness))
+    override var intrinsicContentSize: NSSize {
+        NSSize(
+            width: Self.horizontalPadding * 2 + Self.iconSide,
+            height: NSStatusBar.system.thickness
+        )
+    }
 
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+
+        translatesAutoresizingMaskIntoConstraints = false
         autoresizesSubviews = true
+        wantsLayer = true
+        layerContentsRedrawPolicy = .onSetNeedsDisplay
 
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.imageScaling = .scaleProportionallyDown
+        imageView.symbolConfiguration = NSImage.SymbolConfiguration(pointSize: 14, weight: .medium)
         addSubview(imageView)
 
         NSLayoutConstraint.activate([
+            imageView.centerXAnchor.constraint(equalTo: centerXAnchor),
             imageView.centerYAnchor.constraint(equalTo: centerYAnchor),
-            imageView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -4),
-            imageView.widthAnchor.constraint(equalToConstant: 18),
-            imageView.heightAnchor.constraint(equalToConstant: 18)
+            imageView.widthAnchor.constraint(equalToConstant: Self.iconSide),
+            imageView.heightAnchor.constraint(equalToConstant: Self.iconSide)
         ])
+
+        applySymbol(isHiding: false)
     }
 
     required init?(coder: NSCoder) {
@@ -30,15 +44,17 @@ final class MenuBarStatusView: NSView {
     }
 
     func updateAppearance(isHiding: Bool) {
-        let symbolName = isHiding
-            ? "line.3.horizontal.decrease.circle.fill"
-            : "line.3.horizontal.decrease.circle"
+        applySymbol(isHiding: isHiding)
+        invalidateIntrinsicContentSize()
+    }
 
-        imageView.image = NSImage(
-            systemSymbolName: symbolName,
-            accessibilityDescription: "Toggle hidden menu bar items"
-        )
-        imageView.image?.isTemplate = true
+    private func applySymbol(isHiding: Bool) {
+        let name = isHiding ? "circle.fill" : "circle"
+        guard let image = NSImage(systemSymbolName: name, accessibilityDescription: "Toggle hidden menu bar items") else {
+            return
+        }
+        image.isTemplate = true
+        imageView.image = image
     }
 
     override func mouseUp(with event: NSEvent) {

@@ -9,6 +9,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusView: MenuBarStatusView?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        hider.onStateChange = { [weak self] in
+            self?.updateStatusItemAppearance()
+        }
         configureMenu()
         configureStatusItem()
         // NSStatusBar grows left as items are added, so the spacer must be
@@ -37,9 +40,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func configureStatusItem() {
-        let item = NSStatusBar.system.statusItem(withLength: MenuBarStatusView.compactLength)
+        let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         item.behavior = [.terminationOnRemoval]
-        item.autosaveName = "com.xolo.sweep.status-item"
+        // Bumped when menu-bar chrome changes so macOS doesn't restore stale Control Center state.
+        item.autosaveName = "com.xolo.sweep.status-item.circle"
         statusItem = item
 
         let view = MenuBarStatusView()
@@ -79,7 +83,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         hider.toggle(spacerItem: spacerItem, relativeTo: statusView)
-        updateStatusItemAppearance()
     }
 
     @objc

@@ -13,7 +13,6 @@ final class MenuBarSpacerView: NSView {
     func updateLength(_ length: CGFloat) {
         frame.size.width = length
         needsLayout = true
-        needsDisplay = true
     }
 
     override var isOpaque: Bool {
